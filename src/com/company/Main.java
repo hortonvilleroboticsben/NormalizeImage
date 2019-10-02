@@ -1,6 +1,6 @@
 package com.company;
 
-import javafx.beans.binding.DoubleExpression;
+
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -12,9 +12,12 @@ public class Main {
 	//"C:\\Users\\Sam\\Pictures\\pic.jpg"
 
     public static void main(String[] args) throws IOException {
-    	File image = new File("C:\\1 Grace\\Internship\\pic.png");
-//		normalizeImgBW(image);
+    	File image = new File("C:\\Users\\Sam\\Pictures\\field.jpg");
+		long startTime = System.nanoTime();
 		normalizeImgC(image);
+		long endTime = System.nanoTime();
+		long finalTime = (endTime - startTime) / 1000000;
+		System.out.println("Final Time: " + finalTime);
     }
 
     public static void normalizeImgC(File imageFile){
@@ -29,7 +32,8 @@ public class Main {
 			System.out.println("Image Read: Fail");
         }
 
-        double[][] norm = new double[img.getWidth()][img.getHeight()];
+		assert img != null;
+		double[][] norm = new double[img.getWidth()][img.getHeight()];
         double[][] red = new double[img.getWidth()][img.getHeight()];
 		double[][] green = new double[img.getWidth()][img.getHeight()];
 		double[][] blue = new double[img.getWidth()][img.getHeight()];
@@ -47,7 +51,7 @@ public class Main {
 				int r = (p>>16)&0xff;
 				int g = (p>>8)&0xff;
 				int b = p&0xff;
-				img.setRGB(x, y, p);
+				//img.setRGB(x, y, p);
 				redSum += r;
 				greenSum += g;
 				blueSum += b;
@@ -66,7 +70,7 @@ public class Main {
 		//getting the standard deviation
 		for(int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
-				int p = img.getRGB(x,y)&0xff;
+				int p = img.getRGB(x,y);
 				int r = (p>>16)&0xff;
 				int g = (p>>8)&0xff;
 				int b = p&0xff;
@@ -86,9 +90,12 @@ public class Main {
 		double greenStDev = Math.sqrt(greenSum2/(width*height));
 		double blueStDev = Math.sqrt(blueSum2/(width*height));
 
+		System.out.println("Red:\t"+redStDev+"\nGreen:\t"+greenStDev+"\nBlue:\t"+blueStDev);
+		System.out.println("Red:\t"+redAvg+"\nGreen:\t"+greenAvg+"\nBlue:\t"+blueAvg);
+		
 		for(int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
-				int p = img.getRGB(x,y)&0xff;
+				int p = img.getRGB(x,y);
 				int r = (p>>16)&0xff;
 				int g = (p>>8)&0xff;
 				int b = p&0xff;
@@ -100,6 +107,23 @@ public class Main {
 				blue[x][y] = blueNorm;
 			}
 		}
+		int tblueMean = 0;
+		//TESTING PURPROSES ONLY//
+		for(int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				tblueMean += blue[x][y];
+			}
+		}
+		tblueMean /= (height*width);
+		double tBlueMean2 = 0;
+		for(int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				tBlueMean2 += Math.pow((blue[x][y]-tblueMean), 2);
+			}
+		}
+		double tBlueStDev = Math.pow((tBlueMean2/(height*width)), .5);
+		System.out.println("tStDev: " + tBlueStDev + "\ntBlueMean: " + tblueMean);
+
 		double mostE = Double.MIN_VALUE;
 		double redMostE = Double.MIN_VALUE;
 		double greenMostE = Double.MIN_VALUE;
@@ -126,9 +150,9 @@ public class Main {
 
 		for(int y = 1; y < height; y++) {
 			for (int x = 1; x < width; x++) {
-				double p = red[x][y];
-				if (Math.abs(p)>redMostE){
-					redMostE = Math.abs(p);
+				double p = blue[x][y];
+				if (Math.abs(p)>blueMostE){
+					blueMostE = Math.abs(p);
 				}
 			}
 		}
@@ -138,6 +162,7 @@ public class Main {
 				double p = red[x][y];
 				double redXDec = p * (127/redMostE) + 128;
                 red[x][y] = redXDec;
+                //if(Math.random() <= 0.2) System.out.println("Red:\t"+red[x][y]);
 			}
 		}
 
@@ -146,6 +171,7 @@ public class Main {
 				double p = green[x][y];
 				double greenXDec = p * (127/greenMostE) + 128;
                 green[x][y] = greenXDec;
+				if(Math.random() <= 0.2) System.out.println("Green:\t"+green[x][y]);
 			}
 		}
 
@@ -154,8 +180,11 @@ public class Main {
 				double p = blue[x][y];
 				double blueXDec = p * (127/blueMostE) + 128;
                 blue[x][y] = blueXDec;
+
             }
 		}
+
+
 
 		System.out.println("RedMost:\t\t"+redMostE+"\n"+"GreenMost:\t\t"+greenMostE+"\n"+"BlueMost:\t\t"+blueMostE);
 
@@ -178,7 +207,7 @@ public class Main {
 
 		try{
             System.out.println("Image Save: Success");
-			imageFile = new File("C:\\1 Grace\\Internship\\normalizedImgC.jpg");
+			imageFile = new File("C:\\Users\\Sam\\Pictures\\normalizedImgC.jpg");
 			ImageIO.write(img, "jpg", imageFile);
 		}catch(IOException e){
             System.out.println("Image Save: Fail");
